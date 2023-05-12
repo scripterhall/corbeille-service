@@ -22,4 +22,6 @@ public class HistoireTicket extends Ticket{
     private int effort;
     private Long productBacklogId;
     private int position;
+    private Sprint sprint;
+    private Long sprintId;
 }

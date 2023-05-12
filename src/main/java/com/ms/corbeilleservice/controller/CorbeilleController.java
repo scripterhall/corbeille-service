@@ -1,8 +1,12 @@
 package com.ms.corbeilleservice.controller;
 
-import java.sql.SQLException;
 
+import java.sql.SQLException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -47,6 +51,8 @@ public class CorbeilleController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody 
     public ResponseEntity<TicketTache> ajouterTicketTacheACorbeille(@RequestBody TicketTache tt) {
+        tt.setDateLancement(null);
+        tt.setDateFin(null);
         TicketTache ttSaved =  coribeilleService.ajouterTicketTache(tt);
         if(ttSaved == null){
             return  new ResponseEntity<>(ttSaved, HttpStatus.BAD_REQUEST);
@@ -70,9 +76,15 @@ public class CorbeilleController {
             }
             return ResponseEntity.noContent().build();
         }else{
+           
             TicketTache tt = this.coribeilleService.getById(id);
             if(tt != null){
                 try{
+                if(tt.getSprintBacklogId()!=null){
+                tt.setDateLancement(Date.from(Instant.now()));
+                tt.setDateFin(Date.from(Instant.now().plus(tt.getNbHeurs(), ChronoUnit.HOURS)));
+                }
+                 /** verif tache existe deja ou non dans le sprint  */
                 this.ticketTacheFeignClient.ajouterTicketTache(tt);
                 boolean isDeleted = coribeilleService.supprimerTicketTache(id);
                 if (!isDeleted) 
@@ -85,9 +97,6 @@ public class CorbeilleController {
             else
                 return ResponseEntity.notFound().build();
         }
-
-
-        
     }
 
     @DeleteMapping
